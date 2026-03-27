@@ -924,7 +924,7 @@ END:VCARD`;
     const formStatus = document.getElementById('form-status');
     
     // Configuração do Web3Forms (Peça sua chave em https://web3forms.com/)
-    const WEB3FORMS_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE"; 
+    const WEB3FORMS_ACCESS_KEY = "1418d683-9d3a-4476-ab3e-e11378cc2a11"; 
 
     if (contactForm && formStatus) {
         contactForm.addEventListener('submit', (e) => {
