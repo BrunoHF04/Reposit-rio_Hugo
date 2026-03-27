@@ -923,17 +923,10 @@ END:VCARD`;
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     
-    // Configuração do EmailJS (Substitua pelos seus dados quando criar a conta)
-    const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY"; // Ex: "pk_..."
-    const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID"; // Ex: "service_..."
-    const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // Ex: "template_..."
+    // Configuração do Web3Forms (Peça sua chave em https://web3forms.com/)
+    const WEB3FORMS_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE"; 
 
     if (contactForm && formStatus) {
-        // Inicializar EmailJS
-        if (typeof emailjs !== 'undefined') {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-        }
-
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = contactForm.querySelector('button');
@@ -944,37 +937,42 @@ END:VCARD`;
             btnText.innerText = 'Enviando...';
 
             const lang = localStorage.getItem('lang') || 'pt';
+            const formData = new FormData(contactForm);
+            
+            // Adicionar a chave de acesso e o assunto
+            formData.append("access_key", WEB3FORMS_ACCESS_KEY);
+            formData.append("subject", `Novo contato de ${formData.get('name')} | Portfólio`);
+            formData.append("from_name", "Portfólio Hugo Januário");
 
-            if (typeof emailjs === 'undefined') {
-                formStatus.innerText = "Erro: EmailJS não carregado.";
-                formStatus.className = 'form-status error';
-                btn.disabled = false;
-                btnText.innerText = originalText;
-                return;
-            }
-
-            // Enviar via EmailJS
-            emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, contactForm)
-                .then(() => {
+            fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                body: formData
+            })
+            .then(async (response) => {
+                const json = await response.json();
+                if (response.status === 200) {
                     formStatus.innerText = translations[lang].contact_form_success;
                     formStatus.className = 'form-status success';
                     contactForm.reset();
-                    btn.disabled = false;
-                    btnText.innerText = originalText;
-                })
-                .catch((error) => {
-                    console.error('EmailJS Error:', error);
-                    formStatus.innerText = translations[lang].contact_form_error;
+                } else {
+                    console.log(response);
+                    formStatus.innerText = json.message || translations[lang].contact_form_error;
                     formStatus.className = 'form-status error';
-                    btn.disabled = false;
-                    btnText.innerText = originalText;
-                })
-                .finally(() => {
-                    setTimeout(() => {
-                        formStatus.innerText = '';
-                        formStatus.className = 'form-status';
-                    }, 5000);
-                });
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                formStatus.innerText = translations[lang].contact_form_error;
+                formStatus.className = 'form-status error';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btnText.innerText = originalText;
+                setTimeout(() => {
+                    formStatus.innerText = '';
+                    formStatus.className = 'form-status';
+                }, 5000);
+            });
         });
     }
 
